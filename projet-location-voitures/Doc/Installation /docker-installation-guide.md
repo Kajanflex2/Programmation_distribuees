@@ -129,12 +129,14 @@ Créez un fichier de configuration JSON :
 sudo mkdir -p /etc/docker
 sudo tee /etc/docker/daemon.json <<EOF
 {
+  "exec-opts": ["native.cgroupdriver=systemd"],
   "log-driver": "json-file",
   "log-opts": {
     "max-size": "10m",
     "max-file": "3"
   },
-  "dns": ["8.8.8.8", "8.8.4.4"]
+  "dns": ["8.8.8.8", "8.8.4.4"],
+  "storage-driver": "overlay2"
 }
 EOF
 ```
@@ -143,6 +145,36 @@ Redémarrez Docker pour appliquer les changements :
 
 ```bash
 sudo systemctl restart docker
+```
+
+### 4. Optimisation pour système à mémoire limitée (8 Go de RAM)
+
+Si vous travaillez sur un système avec une RAM limitée et installez plusieurs outils DevOps (Docker, Kubernetes, Minikube), il est important d'optimiser l'utilisation des ressources :
+
+```bash
+# Limiter l'utilisation mémoire de Docker
+# Ajouter ces lignes à /etc/docker/daemon.json
+{
+  "exec-opts": ["native.cgroupdriver=systemd"],
+  "log-driver": "json-file",
+  "log-opts": {
+    "max-size": "10m",
+    "max-file": "3"
+  },
+  "dns": ["8.8.8.8", "8.8.4.4"],
+  "storage-driver": "overlay2",
+  "default-shm-size": "64M",
+  "memory": "1G"
+}
+
+# Redémarrer Docker pour appliquer les changements
+sudo systemctl restart docker
+
+# Nettoyer les ressources inutilisées régulièrement
+docker system prune -a --volumes
+
+# Arrêter Docker quand vous ne l'utilisez pas
+sudo systemctl stop docker
 ```
 
 ## Vérification de l'installation
@@ -292,3 +324,27 @@ docker system df
 # Supprimer toutes les ressources inutilisées
 docker system prune -a --volumes
 ```
+
+### Gestion des ressources système
+
+Pour les systèmes avec une mémoire limitée (8 Go de RAM ou moins) qui exécutent d'autres services comme Kubernetes ou Minikube :
+
+```bash
+# Arrêter et désactiver Docker lorsqu'il n'est pas utilisé
+sudo systemctl stop docker
+sudo systemctl disable docker
+
+# Réactiver et démarrer Docker quand nécessaire
+sudo systemctl enable docker
+sudo systemctl start docker
+
+# Surveiller l'utilisation des ressources par Docker
+docker stats
+
+# Limiter le nombre de conteneurs actifs
+# Arrêtez les conteneurs inutilisés
+docker ps -a
+docker stop $(docker ps -q)
+```
+
+Si vous travaillez sur un projet DevSecOps avec plusieurs outils (Docker, Kubernetes, Minikube), n'utilisez qu'un seul environnement à la fois pour économiser les ressources. Par exemple, arrêtez Kubernetes/Minikube lorsque vous travaillez uniquement avec Docker.

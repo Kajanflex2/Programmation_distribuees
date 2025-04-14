@@ -236,6 +236,45 @@ echo 'complete -F __start_kubectl k' >>~/.bashrc
 source ~/.bashrc
 ```
 
+### 3. Optimisation pour systèmes à mémoire limitée
+
+Sur un système avec 8 Go de RAM, en particulier lorsque vous exécutez plusieurs outils DevOps (Docker, Kubernetes/Minikube), certaines commandes kubectl peuvent être gourmandes en ressources. Voici quelques alias et fonctions optimisés :
+
+```bash
+# Ajouter ces lignes à votre ~/.bashrc ou ~/.zshrc
+
+# Requêtes optimisées pour limiter la charge
+alias kgp='kubectl get pods --no-headers'
+alias kgpw='kubectl get pods -o wide --no-headers'
+alias kgs='kubectl get services --no-headers'
+alias kgn='kubectl get nodes --no-headers'
+
+# Fonction "watch" optimisée avec rafraîchissement réduit
+kwatch() {
+  watch -n 5 -d "kubectl get $@ --no-headers"
+}
+
+# Obtenir des logs sans surcharger le système
+klogs() {
+  kubectl logs $1 --tail=50
+}
+
+# Nettoyer les ressources terminées pour libérer de la mémoire
+kclean() {
+  kubectl delete pods --field-selector=status.phase==Succeeded --all-namespaces
+  kubectl delete pods --field-selector=status.phase==Failed --all-namespaces
+}
+
+# Configurer temporairement le niveau de verbosité (pour déboguer puis revenir à normal)
+kdebug() {
+  export KUBE_VERBOSE_LEVEL=5
+  kubectl $@
+  export KUBE_VERBOSE_LEVEL=0
+}
+```
+
+Ajoutez ces alias à votre fichier `.bashrc` ou `.zshrc` pour faciliter l'utilisation de kubectl tout en minimisant l'impact sur les ressources système.
+
 ## Configuration multi-cluster
 
 Si vous travaillez avec plusieurs clusters, vous pouvez configurer kubectl pour passer facilement de l'un à l'autre.
@@ -306,7 +345,69 @@ kubectl ctx
 
 ## Résolution de problèmes
 
-### 1. Erreur "The connection to the server localhost:8080 was refused"
+### 1. Optimisation de kubectl pour systèmes à mémoire limitée (8 Go RAM)
+
+Si vous travaillez sur un système avec des ressources limitées, voici quelques conseils pour optimiser l'utilisation de kubectl:
+
+```bash
+# Limiter la quantité de données retournées
+kubectl get pods --field-selector=metadata.namespace=default
+
+# Utiliser le format "custom-columns" plutôt que "-o wide" pour limiter la sortie
+kubectl get pods -o custom-columns=NAME:.metadata.name,STATUS:.status.phase
+
+# Éviter les commandes qui chargent beaucoup de données
+# Au lieu de "kubectl get all --all-namespaces", utilisez:
+kubectl get pods -n kube-system
+kubectl get services -n kube-system
+```
+
+Pour réduire la charge système lors de l'utilisation de kubectl avec watch:
+
+```bash
+# Au lieu de cette commande, qui peut être lourde:
+kubectl get pods -w
+
+# Utilisez un intervalle plus long:
+watch -n 10 kubectl get pods
+```
+
+Utilisez le cache local pour réduire les appels à l'API server:
+
+```bash
+# Créer un répertoire pour le cache
+mkdir -p ~/.kube/cache
+
+# Configurer kubectl pour utiliser le cache
+kubectl config set-context --current --cache-dir=~/.kube/cache
+```
+
+### 2. Gestion des ressources entre kubectl, Kubernetes et autres outils
+
+Si vous utilisez kubectl avec un cluster Kubernetes complet et Docker sur un système à 8 Go de RAM:
+
+```bash
+# Après l'utilisation de kubectl pour les tâches administratives, 
+# vous pouvez limiter la charge du serveur API en arrêtant certains services non critiques:
+
+# Mettre en pause les déploiements non critiques
+kubectl scale deployment non-critical-app --replicas=0 -n application-namespace
+
+# Reprendre les déploiements quand nécessaire
+kubectl scale deployment non-critical-app --replicas=1 -n application-namespace
+```
+
+Si vous alternez entre Minikube et un cluster Kubernetes standard:
+
+```bash
+# Lorsque vous passez à Minikube:
+export KUBECONFIG=~/.kube/minikube-config
+
+# Lorsque vous revenez à votre cluster principal:
+export KUBECONFIG=~/.kube/config
+```
+
+### 3. Erreur "The connection to the server localhost:8080 was refused"
 
 Cette erreur se produit lorsque kubectl ne peut pas se connecter au serveur API Kubernetes.
 
