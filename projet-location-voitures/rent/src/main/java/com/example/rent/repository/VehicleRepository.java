@@ -1,3 +1,4 @@
+
 package com.example.rent.repository;
 
 import com.example.rent.data.Vehicle;
@@ -18,3 +19,14 @@ public interface VehicleRepository extends JpaRepository<Vehicle, String> {
     // Récupérer tous les véhicules avec un prix inférieur ou égal à
     List<Vehicle> findByPriceLessThanEqual(int price);
 }
+
+
+
+
+
+/***
+package com.example.rent.repository;
+
+public class vehicleRepository {
+}
+***/
