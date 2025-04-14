@@ -294,12 +294,3 @@ kubectl run test-pod --image=busybox --restart=Never --serviceaccount=default --
 kubectl exec -it test-pod -- wget -O- http://rentalservice/cars
 ```
 
-## 8. Documentation et rapport
-
-Préparez un rapport décrivant votre projet, incluant :
-- Architecture générale (diagrammes)
-- Technologies utilisées
-- Détails d'implémentation
-- Captures d'écran des interfaces et tableaux de bord
-- Démonstration des fonctionnalités
-- Description des mesures de sécurité
