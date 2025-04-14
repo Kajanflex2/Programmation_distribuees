@@ -240,6 +240,36 @@ minikube logs
 
 ## Configuration des ressources
 
+### Optimisation pour systèmes avec mémoire limitée (8 Go)
+
+Pour les systèmes avec des ressources limitées, il est crucial d'optimiser la configuration de Minikube :
+
+```bash
+# Configurer Minikube pour utiliser moins de mémoire (1.5-2GB au lieu de 4GB par défaut)
+minikube config set memory 1500
+
+# Réduire le nombre de CPUs
+minikube config set cpus 1
+
+# Limiter la taille du disque
+minikube config set disk-size 20g
+
+# Démarrer avec ces paramètres réduits
+minikube start --driver=docker
+```
+
+Si vous avez d'autres services comme un cluster Kubernetes (via kubeadm) ou d'autres applications gourmandes en ressources, ne les exécutez pas simultanément avec Minikube. Arrêtez-les avant de démarrer Minikube :
+
+```bash
+# Si vous avez un cluster Kubernetes
+sudo kubeadm reset
+sudo systemctl stop kubelet
+sudo systemctl disable kubelet
+
+# Puis démarrez Minikube avec des ressources limitées
+minikube start --memory=1500 --cpus=1
+```
+
 ### Modifier les ressources après installation
 
 ```bash
@@ -414,6 +444,38 @@ echo "$(minikube ip) example.com" | sudo tee -a /etc/hosts
 ```
 
 ## Nettoyage et réinitialisation
+
+### Gestion efficace de la mémoire sur système à ressources limitées
+
+Sur un système avec 8 Go de RAM, il est important de libérer les ressources quand Minikube n'est pas utilisé :
+
+```bash
+# Arrêter simplement le cluster (libère la mémoire mais conserve les configurations)
+minikube stop
+
+# Mettre en pause le cluster pour économiser de la mémoire pendant que le VM reste disponible
+minikube pause
+
+# Pour libérer complètement les ressources, supprimer le cluster
+minikube delete
+
+# Pour une suppression complète de toutes les configurations et VM
+minikube delete --purge
+```
+
+Pour basculer entre Minikube et un cluster Kubernetes classique :
+
+```bash
+# Étape 1: Arrêter Minikube et libérer ses ressources
+minikube stop
+
+# Étape 2: Activer le kubelet pour votre cluster Kubernetes standard
+sudo systemctl enable --now kubelet
+
+# Pour revenir à Minikube plus tard
+sudo systemctl stop kubelet
+minikube start
+```
 
 ### Supprimer un cluster
 
