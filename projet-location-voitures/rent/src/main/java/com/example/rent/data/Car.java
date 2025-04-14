@@ -1,28 +1,26 @@
 package com.example.rent.data;
 
-public class Car {
+import jakarta.persistence.Entity;
 
-    String plateNumber;
-    int price;
+@Entity
+public class Car extends Vehicle {
 
-    public Car(String plateNumber, int price) {
-        this.plateNumber = plateNumber;
-        this.price = price;
+    private int numberOfSeats;
+
+    public Car() {
+        super();
     }
 
-    public String getPlateNumber() {
-        return plateNumber;
+    public Car(String plateNumber, String brand, int price, int numberOfSeats) {
+        super(plateNumber, brand, price);
+        this.numberOfSeats = numberOfSeats;
     }
 
-    public void setPlateNumber(String plateNumber) {
-        this.plateNumber = plateNumber;
+    public int getNumberOfSeats() {
+        return numberOfSeats;
     }
 
-    public int getPrice() {
-        return price;
-    }
-
-    public void setPrice(int price) {
-        this.price = price;
+    public void setNumberOfSeats(int numberOfSeats) {
+        this.numberOfSeats = numberOfSeats;
     }
 }
