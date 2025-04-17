@@ -17,7 +17,7 @@ spec:
     spec:
       containers:
         - name: rentalservice
-          image: ${DOCKER_USERNAME}/rentalservice:1
+          image: kajanan2/rentalservice:1
           imagePullPolicy: Always
           ports:
             - containerPort: 8080

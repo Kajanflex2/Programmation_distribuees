@@ -17,7 +17,7 @@ spec:
     spec:
       containers:
         - name: userservice
-          image: ${DOCKER_USERNAME}/userservice:1
+          image: kajanan2/userservice:1
           imagePullPolicy: Always
           ports:
             - containerPort: 8081
